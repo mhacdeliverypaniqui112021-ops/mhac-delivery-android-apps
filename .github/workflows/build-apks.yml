@@ -13,7 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Extract project ZIP
+      - name: Extract project
         run: |
           unzip -o mhac.zip
           rm mhac.zip
@@ -24,10 +24,10 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android SDK
+      - name: Set up Android
         uses: android-actions/setup-android@v3
 
-      - name: Install Android SDK packages
+      - name: Install Android SDK
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
       - name: Set up Gradle
@@ -35,22 +35,22 @@ jobs:
         with:
           gradle-version: '8.7'
 
-      - name: Build all 3 APKs
+      - name: Build 3 APKs
         run: gradle :admin:assembleDebug :customer:assembleDebug :rider:assembleDebug
 
-      - name: Upload Admin APK
+      - name: Admin APK
         uses: actions/upload-artifact@v4
         with:
           name: MHAC-ADMIN-APK
           path: admin/build/outputs/apk/debug/admin-debug.apk
 
-      - name: Upload Customer APK
+      - name: Customer APK
         uses: actions/upload-artifact@v4
         with:
           name: MHAC-CUSTOMER-APK
           path: customer/build/outputs/apk/debug/customer-debug.apk
 
-      - name: Upload Rider APK
+      - name: Rider APK
         uses: actions/upload-artifact@v4
         with:
           name: MHAC-RIDER-APK
