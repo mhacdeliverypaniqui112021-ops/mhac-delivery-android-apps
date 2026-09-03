@@ -1,0 +1,57 @@
+name: Build MHAC Delivery APKs
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract project ZIP
+        run: |
+          unzip -o mhac.zip
+          rm mhac.zip
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Build all 3 APKs
+        run: gradle :admin:assembleDebug :customer:assembleDebug :rider:assembleDebug
+
+      - name: Upload Admin APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MHAC-ADMIN-APK
+          path: admin/build/outputs/apk/debug/admin-debug.apk
+
+      - name: Upload Customer APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MHAC-CUSTOMER-APK
+          path: customer/build/outputs/apk/debug/customer-debug.apk
+
+      - name: Upload Rider APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MHAC-RIDER-APK
+          path: rider/build/outputs/apk/debug/rider-debug.apk
