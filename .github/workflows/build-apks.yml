@@ -15,8 +15,8 @@ jobs:
 
       - name: Extract project
         run: |
-          unzip -o mhac.zip
-          rm mhac.zip
+          unzip -o mhac_fixed.zip
+          rm mhac_fixed.zip
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -24,11 +24,25 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android
+      - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
       - name: Install Android SDK
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+        run: |
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Fix Kotlin duplicate classes
+        run: |
+          for f in admin/build.gradle customer/build.gradle rider/build.gradle
+          do
+            cat >> "$f" <<'EOF'
+
+          configurations.all {
+              exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+              exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+          }
+          EOF
+          done
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -36,21 +50,22 @@ jobs:
           gradle-version: '8.7'
 
       - name: Build 3 APKs
-        run: gradle :admin:assembleDebug :customer:assembleDebug :rider:assembleDebug
+        run: |
+          gradle :admin:assembleDebug :customer:assembleDebug :rider:assembleDebug
 
-      - name: Admin APK
+      - name: Upload Admin APK
         uses: actions/upload-artifact@v4
         with:
           name: MHAC-ADMIN-APK
           path: admin/build/outputs/apk/debug/admin-debug.apk
 
-      - name: Customer APK
+      - name: Upload Customer APK
         uses: actions/upload-artifact@v4
         with:
           name: MHAC-CUSTOMER-APK
           path: customer/build/outputs/apk/debug/customer-debug.apk
 
-      - name: Rider APK
+      - name: Upload Rider APK
         uses: actions/upload-artifact@v4
         with:
           name: MHAC-RIDER-APK
