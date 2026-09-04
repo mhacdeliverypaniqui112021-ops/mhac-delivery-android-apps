@@ -30,7 +30,7 @@ jobs:
       - name: Extract patched MHAC project
         run: |
           rm -rf admin customer rider
-          unzip -q "MHAC_FIXED_WEBVIEW_PATCH_V1.zip"
+          unzip -q "MHAC_FIXED_WEBVIEW_PATCH_V2.zip"
           echo "PROJECT CONTENTS:"
           find . -maxdepth 4 -type f | sort | head -150
 
