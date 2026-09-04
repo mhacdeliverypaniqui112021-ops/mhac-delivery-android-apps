@@ -1,4 +1,4 @@
-name: Build MHAC Admin APK
+name: Build MHAC Delivery APKs
 
 on:
   workflow_dispatch:
@@ -20,31 +20,62 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Extract Admin project
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK
         run: |
-          rm -rf android-project
-          mkdir android-project
-          unzip -q "MHAC_ADMIN_NEW_REPO_READY.zip" -d android-project
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Extract patched MHAC project
+        run: |
+          rm -rf admin customer rider
+          unzip -q "MHAC_FIXED_WEBVIEW_PATCH_V1.zip"
           echo "PROJECT CONTENTS:"
-          find android-project -maxdepth 3 -type f | head -80
+          find . -maxdepth 4 -type f | sort | head -150
 
       - name: Download Gradle
         run: |
           wget -q https://services.gradle.org/distributions/gradle-8.7-bin.zip
           unzip -q gradle-8.7-bin.zip
 
-      - name: Build Admin APK
+      - name: Build Admin Customer Rider APKs
         run: |
-          cd android-project
-          ../gradle-8.7/bin/gradle :app:assembleDebug --no-daemon
+          ./gradle-8.7/bin/gradle \
+            :admin:assembleDebug \
+            :customer:assembleDebug \
+            :rider:assembleDebug \
+            --no-daemon
 
-      - name: Check APK
+      - name: Check APKs
         run: |
-          find android-project -type f -name "*.apk" -print
-          test -f android-project/app/build/outputs/apk/debug/app-debug.apk
+          echo "=== ADMIN ==="
+          find admin -type f -name "*.apk" -print
+
+          echo "=== CUSTOMER ==="
+          find customer -type f -name "*.apk" -print
+
+          echo "=== RIDER ==="
+          find rider -type f -name "*.apk" -print
+
+          test -f admin/build/outputs/apk/debug/admin-debug.apk
+          test -f customer/build/outputs/apk/debug/customer-debug.apk
+          test -f rider/build/outputs/apk/debug/rider-debug.apk
 
       - name: Upload Admin APK
         uses: actions/upload-artifact@v4
         with:
-          name: MHAC-ADMIN-APK-NEW
-          path: android-project/app/build/outputs/apk/debug/app-debug.apk
+          name: MHAC-ADMIN-APK
+          path: admin/build/outputs/apk/debug/admin-debug.apk
+
+      - name: Upload Customer APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MHAC-CUSTOMER-APK
+          path: customer/build/outputs/apk/debug/customer-debug.apk
+
+      - name: Upload Rider APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MHAC-RIDER-APK
+          path: rider/build/outputs/apk/debug/rider-debug.apk
